@@ -33,8 +33,10 @@ uv sync --all-packages
 uv run pytest runtimes/hermes-base/tests -q
 uv run ruff check runtimes/hermes-base
 ./scripts/vendor-hermes.sh   # P1
+bash scripts/check-hermes-install-policy.sh
+./scripts/stage-docker-build.sh && docker build -f runtimes/hermes-base/Dockerfile .
 ```
 
 ## 3. Status
 
-P0 — 설계·스캐폴딩 진행 중. P1에 **OCI runtime-slim** ([ROADMAP.md](ROADMAP.md) § P1) 등록됨.
+P1 — hermes-base MVP + wire-dev E2E + OCI runtime-slim 완료. P2 agents-runtime 통합 진행.

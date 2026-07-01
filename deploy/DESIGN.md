@@ -43,6 +43,28 @@ volumes:
 
 `runtime/role: pool` — 기존과 동일.
 
+## OCI runtime-slim
+
+hermes 단독 repo에서 이미지 빌드:
+
+```bash
+# runtime-common 스테이징 (agents-runtime path dep)
+./scripts/stage-docker-build.sh
+
+docker build \
+  --build-arg GIT_SHA="$(git rev-parse HEAD)" \
+  --build-arg HERMES_REVISION="$(cat vendor/hermes-agent/REVISION 2>/dev/null || echo dev)" \
+  -f runtimes/hermes-base/Dockerfile \
+  -t hermes-base:local .
+
+./scripts/check-hermes-image-size.sh hermes-base:local
+./scripts/stage-docker-build.sh --clean
+```
+
+CI: `.github/workflows/hermes-oci.yml` — install policy grep + docker build + max-size gate (1200 MiB).
+
+agents-runtime monorepo 통합 시 동일 Dockerfile을 `runtimes/hermes-base/`에서 재사용 (`packages/common` in-tree).
+
 ## Commands
 
 ```bash

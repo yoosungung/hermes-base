@@ -83,18 +83,81 @@ VFS fingerprint 변경 시 `InstanceCache.invalidate_checksum` 또는 config PAT
 - 다른 agent: 병렬 OK
 - pod A → pod B: VFS + SessionDB Postgres로 상태 공유
 
-### Runtime-slim OCI (예정 — [ROADMAP.md](../../ROADMAP.md) P1)
+### Runtime-slim OCI
 
-풀 `hermes-agent` 설치는 gateway·CLI·plugins 코드와 불필요한 core deps까지 이미지에 포함한다. pool은 `AIAgent` library embed만 사용.
+pool은 `AIAgent` library embed만 사용 — gateway·CLI·TUI·ACP adapter는 **이미지에 포함하지 않는다**.
 
-- extras `[all]` / `[gateway]` / `[web]` / `[messaging]` 금지
-- multi-stage Dockerfile + (선택) site-packages prune
-- 장기: `hermes-agent[runtime]` optional-extra 또는 upstream 기여
+#### 설치 정책
+
+| 허용 | 금지 |
+|------|------|
+| `uv pip install -e ./vendor/hermes-agent/src` (core only) | `hermes-agent[all]` |
+| `prune-hermes-packages.sh` (vendor + site-packages) | `hermes-agent[gateway]` / `[web]` / `[messaging]` |
+| `uv sync --package hermes-base --no-dev` | `pip install hermes-agent[...]` with fat extras |
+
+CI: `scripts/check-hermes-install-policy.sh` — Dockerfile·vendor 스크립트 grep.
+
+#### Dockerfile (multi-stage)
+
+```text
+vendor  — git clone hermes-agent main → apply patches → prune vendor tree
+base    — uv sync hermes-base → editable install → prune site-packages → import smoke
+```
+
+빌드 전 `scripts/stage-docker-build.sh`로 `runtime-common`을 `packages/common/`에 스테이징 (hermes 단독 repo).
+
+```bash
+./scripts/stage-docker-build.sh
+docker build -f runtimes/hermes-base/Dockerfile -t hermes-base:local .
+./scripts/check-hermes-image-size.sh hermes-base:local   # default max 1200 MiB
+```
+
+Prune 대상 (vendor + site-packages): `gateway`, `tui_gateway`, `acp_adapter`.  
+`hermes_cli`는 `run_agent` module import에 필요 — **prune하지 않음**.
+
+#### 이미지 크기 gate
+
+`HERMES_IMAGE_MAX_MIB` (default `1200`) — CI `.github/workflows/hermes-oci.yml`에서 빌드 후 검증.
+
+#### 장기 (선택)
+
+upstream `hermes-agent[runtime]` optional-extra — SessionDB + `run_agent` deps만. 현재는 core + prune.
+
+## wire-dev E2E (VFS + SessionDB)
+
+로컬 Mac 프로세스를 dev k8s `runtime` 네임스페이스 Postgres/Redis에 연결한다. **`wire-dev.sh`는 agents-runtime 저장소**에서 실행.
+
+| 변수 | wire-dev 값 |
+|------|-------------|
+| `VFS_DSN` | `postgresql://runtime:runtime@127.0.0.1:5432/runtime?sslmode=disable` |
+| `HERMES_SESSION_DSN` | 동일 (Hermes `sessions.state_backend=postgres`) |
+| `HERMES_WORK_DIR` | `.wire-dev/hermes-work` |
+| `REDIS_URL` | `redis://127.0.0.1:6379` |
+| `MCP_GATEWAY_URL` | `http://127.0.0.1:8084` |
+
+```bash
+# agents-runtime 루트
+./scripts/wire-dev.sh up
+./scripts/wire-dev.sh env    # → agents-runtime/.env.dev.local
+
+# hermes 저장소
+uv sync --all-packages
+uv run pytest runtimes/hermes-base/tests -m integration -v
+```
+
+통합 fixture는 `agents-runtime/.env.dev.local` → `HERMES_WIRE_DEV_ENV` → `hermes/.env.dev.local` 순으로 env 파일을 탐색. DSN이 없거나 Postgres unreachable이면 `@pytest.mark.integration` 테스트는 skip.
+
+| 테스트 | 검증 |
+|--------|------|
+| `test_vfs_profile_wire.py` | real asyncpg VFS seed/pull/push |
+| `test_session_wire.py` | `HERMES_SESSION_DSN` 연결 + config materialization |
+
+풀 로컬 디버그: `./scripts/wire-dev.sh pool-isolate hermes` → cluster `agent-pool-hermes` scale 0, 로컬 `:8095/invoke`.
 
 ## Commands
 
 ```bash
 uv sync --all-packages
-uv run pytest runtimes/hermes-base/tests -q
-uv run uvicorn hermes_base.app:app --reload --port 8081
+uv run pytest runtimes/hermes-base/tests -q -m "not integration"
+uv run uvicorn hermes_base.app:app --reload --port 8095
 ```

@@ -26,4 +26,4 @@ uv run pytest runtimes/hermes-base/tests -q
 
 ## Status
 
-P0 — 설계·스켈레톤. [ROADMAP.md](ROADMAP.md) 참조.
+P1 — MVP·wire-dev E2E·OCI runtime-slim 완료. [ROADMAP.md](ROADMAP.md) P2 통합 진행.

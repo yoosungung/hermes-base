@@ -39,13 +39,13 @@ vendor/hermes-agent/
 | `runtime-profile-scope` | embed 모드에서 `HERMES_HOME` contextvar 공개 API |
 | (없을 수 있음) | Postgres session — upstream 지원 시 패치 불필요 |
 
-## Runtime-slim install (예정 — [ROADMAP.md](../../ROADMAP.md) P1)
+## Runtime-slim install
 
-hermes-base OCI는 **gateway/dashboard/CLI를 실행하지 않는다**. 기본 `pip install -e`는 해당 **Python 패키지·에셋·deps**까지 wheel에 실리므로 이미지가 커진다.
+hermes-base OCI는 **gateway/dashboard/CLI를 실행하지 않는다**.
 
-- 설치: core only — `[gateway]` `[web]` `[messaging]` `[all]` **금지**
-- Dockerfile: vendor stage `git` 제거, prune 스크립트로 `gateway/`, `hermes_cli/`, `tui_gateway/`, `acp_adapter/` 삭제 후 import 스모크
-- 목표: `hermes-agent[runtime]` extra — `run_agent`, `agent/`, `tools/`(선택), SessionDB deps만
+- 설치: core only — `[all]` / `[gateway]` / `[web]` / `[messaging]` **금지** (`scripts/check-hermes-install-policy.sh`)
+- Dockerfile: vendor stage prune → site-packages prune → `from run_agent import AIAgent` smoke
+- 장기: upstream `hermes-agent[runtime]` optional-extra (현재: core + prune)
 
 ## Dockerfile
 

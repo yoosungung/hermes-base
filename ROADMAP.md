@@ -21,17 +21,17 @@
 - [x] `/invoke` + 429 on lock contention
 - [x] app 통합 테스트 (pull/run/push/lock)
 - [x] `vendor-hermes.sh` (로컬 벤더링)
-- [ ] Postgres session E2E (wire-dev `HERMES_SESSION_DSN`)
-- [ ] VFS pull/push E2E with real asyncpg — **agents-runtime** `test_vfs_profile_wire.py` (`pytest -m integration`)
+- [x] Postgres session E2E (wire-dev `HERMES_SESSION_DSN`)
+- [x] VFS pull/push E2E with real asyncpg — `test_vfs_profile_wire.py` (`pytest -m integration`)
 
 ### P1 — OCI 이미지 슬림화 (`hermes-base` Dockerfile)
 
 - [x] **Dockerfile multi-stage** + `prune-hermes-packages.sh`
 - [x] **설치 후 prune** 스모크 테스트
-- [ ] **설계 문서** § Runtime-slim install 상세 (부분 완료)
-- [ ] **설치 정책** CI grep (`[gateway]`/`[all]` 금지)
-- [ ] **(선택) 패치**: `hermes-agent[runtime]` optional-extra
-- [ ] **이미지 크기 검증** CI max-size gate
+- [x] **설계 문서** § Runtime-slim install 상세
+- [x] **설치 정책** CI grep (`[gateway]`/`[all]` 금지)
+- [ ] **(선택) 패치**: `hermes-agent[runtime]` optional-extra — upstream 기여 대기
+- [x] **이미지 크기 검증** CI max-size gate (1200 MiB)
 
 ## P2 — agents-runtime 통합
 

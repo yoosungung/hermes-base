@@ -9,3 +9,4 @@ vendor/hermes-agent/src/
 dist/
 build/
 .DS_Store
+packages/common/

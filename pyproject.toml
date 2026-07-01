@@ -31,3 +31,6 @@ known-first-party = ["hermes_base", "runtime_common"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["runtimes/hermes-base/tests"]
+markers = [
+    "integration: wire-dev Postgres/Redis E2E (skip when DSN unreachable)",
+]

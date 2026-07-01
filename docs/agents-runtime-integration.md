@@ -69,15 +69,21 @@ CHECK (deploy_mode IN ('bundle', 'image', 'general', 'hermes_general'));
 
 ## 7. wire-dev E2E (로컬 Mac → dev k8s)
 
-`agents-runtime` 루트에서:
+`agents-runtime` 루트에서 port-forward·env 생성:
 
 ```bash
 ./scripts/wire-dev.sh up          # postgres:5432, redis:6379, envoy:8084
-./scripts/wire-dev.sh env         # .env.dev.local (VFS_DSN, HERMES_SESSION_DSN, …)
+./scripts/wire-dev.sh env         # agents-runtime/.env.dev.local
+```
+
+`hermes` 저장소에서 통합 테스트:
+
+```bash
 uv sync --all-packages
-uv run pytest runtimes/hermes-base/tests/test_vfs_profile_wire.py -m integration -v
+uv run pytest runtimes/hermes-base/tests -m integration -v
 ```
 
 - `VFS_DSN` / `HERMES_SESSION_DSN`: wire-dev가 쓰는 dev Postgres (`runtime` DB)
+- env 탐색: `HERMES_WIRE_DEV_ENV` → `agents-runtime/.env.dev.local` → `hermes/.env.dev.local`
 - 풀 로컬 디버그: `./scripts/wire-dev.sh pool-isolate hermes` → `:8095/invoke`
 - 단위 테스트(mock VFS): `uv run pytest runtimes/hermes-base/tests -q -m "not integration"`
