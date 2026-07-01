@@ -39,4 +39,4 @@ bash scripts/check-hermes-install-policy.sh
 
 ## 3. Status
 
-P1 — hermes-base MVP + wire-dev E2E + OCI runtime-slim 완료. P2 agents-runtime 통합 완료. P3 hardening(SSE·Opik·VFS conflict) 완료 — UserVfs는 후속.
+P1 — hermes-base MVP + wire-dev E2E + OCI runtime-slim 완료. P2 agents-runtime 통합 완료. P3 hardening(SSE·Opik·VFS conflict) 완료. UserVfs·P4 Gateway(A: Chat UI only) 확정.

@@ -28,8 +28,22 @@ agents-runtime **Hermes Profile General** tier용 pool. Profile 정본은 **Post
 8. `profile_runtime_scope(scratch)` 
 9. `instance = await get_or_build_hermes_agent(...)`
 10. `run_conversation(...)` (thread pool) — `stream: true` 시 `stream_callback` + SSE (`hermes_stream.py`)
-11. `await vfs_sync.push(agent_name, scratch, manifest)` — VFS 충돌 시 409
+11. `await vfs_sync.push(agent_name, scratch, manifest)` — agent VFS (`USER.md` 제외)
+11b. `await user_vfs_sync.push(user_id, agent_name, scratch, user_manifest)`
 12. `profile_lock.release()`
+
+**UserVfs**
+
+| 항목 | 구현 |
+|------|------|
+| 경로 | user VFS `/hermes/{agent}/memories/USER.md` ↔ scratch `memories/USER.md` |
+| pull | agent pull 후 `UserProfileVfsSync.pull_overlay` — user 파일 있으면 덮어씀 |
+| push | `USER.md`만 user VFS; `MEMORY.md` 등은 agent VFS |
+| fallback | user 파일 없으면 agent VFS 시드 `USER.md` 유지 |
+
+**P4 Gateway (확정: Chat UI only)**
+
+agents-runtime SPA Chat이 유일 진입점. hermes-agent gateway/TUI/ACP는 pool 이미지에 미포함.
 
 **P3 hardening**
 

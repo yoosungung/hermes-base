@@ -35,6 +35,7 @@ Hermes Profile General tier를 agents-runtime에 통합하기 위한 **hermes-ru
 | 데이터 | 저장소 | 비고 |
 |--------|--------|------|
 | Profile 트리 (SOUL, config, skills, memories 파일) | **VFS Postgres** `vfs_agent_files` | `kind=agent`, `agent_name=name`, path `/profile/…` |
+| 사용자 프로필 (`USER.md`) | **VFS Postgres** `vfs_user_files` | `user_id`, path `/hermes/{agent_name}/memories/USER.md` |
 | 세션·메시지 | **Postgres** Hermes SessionDB (`HERMES_SESSION_DSN`) | `sessions.state_backend=postgres` |
 | 동시성 | **Redis** profile lock `rt:lock:hermes:profile:{name}` | invoke 단위 |
 | Invoke scratch | pod **emptyDir** `HERMES_WORK_DIR` | persist 금지 |
@@ -59,7 +60,8 @@ Hermes Profile General tier를 agents-runtime에 통합하기 위한 **hermes-ru
 5. `profile_runtime_scope(scratch)` → `HERMES_HOME`
 6. `get_or_build_hermes_agent` → `AIAgent`
 7. `run_conversation(user_message, task_id=session_id)`
-8. `ProfileVfsSync.push` — `memories/**`, `skills/**` 등 변경분
+8. `ProfileVfsSync.push` — `memories/**`(USER.md 제외), `skills/**` 등 변경분
+8b. `UserProfileVfsSync.push` — `memories/USER.md` → user VFS
 9. lock 해제
 
 ### MCP

@@ -48,7 +48,7 @@
 ## P3 — hardening
 
 - [x] SSE streaming
-- [ ] UserVfs per-user memory (optional — P3 후속)
+- [x] UserVfs per-user memory (`USER.md` → `UserVfsStore` `/hermes/{agent}/…`)
 - [x] Opik trace
 - [x] push 충돌 감지·감사 로그
 
@@ -60,6 +60,8 @@
 | Opik | `configure_opik` lifespan + `opik_trace_context` invoke/stream 경계 |
 | push 충돌 | `PullManifest`에 pull 시점 `vfs_modified_at` 저장 → push 전 재조회 불일치 시 409 + structured audit log (`vfs_push_conflict`) |
 
-## P4 — (선택) Gateway
+## P4 — Gateway (확정: A)
 
-- Chat UI only 유지 또는 별도 gateway 설계
+- **Chat UI only** — agents-runtime SPA → Envoy `/v1/agents/invoke` → `hermes-base` 유일 진입점
+- hermes-agent `gateway` / TUI / ACP adapter는 pool OCI에 포함하지 않음 (runtime-slim 유지)
+- MCP는 agents-runtime Envoy + `mcp_bridge` JWT forward
