@@ -35,9 +35,23 @@ volumes:
 - dev: `1` 가능
 - prod: `2+` — VFS + SessionDB + Redis lock으로 pod 간 일관성
 
-## ext-authz
+## ext-authz pool routing
 
-`POOL_HERMES_URL=http://agent-pool-hermes.runtime.svc.cluster.local:8080`
+`deploy_mode=hermes_general` agent는 `runtime_pool=agent:hermes`로 등록된다. Envoy `POST /v1/agents/invoke` → ext-authz `check()` 흐름:
+
+1. JWT verify + `Principal.can_access("agent", name)`
+2. deploy-api resolve → `runtime_pool=agent:hermes`, `checksum=NULL`
+3. `parse_runtime_pool` → bundle mode, `runtime_kind=hermes`
+4. `Scheduler.pick(..., pool_fallback_url=POOL_HERMES_URL)` — checksum 없음 → warm-registry skip, **pool Service URL** 사용
+5. 응답 헤더 `x-pod-addr` / `x-pod-fallback-addr` = `agent-pool-hermes.runtime.svc.cluster.local:8080`
+6. Envoy Lua → DFP → `hermes-base` `/invoke`
+
+| env (ext-authz) | 값 |
+|-----------------|-----|
+| `POOL_HERMES_URL` | `http://agent-pool-hermes.runtime.svc.cluster.local:8080` |
+
+k8s: `deploy/k8s/base/ext-authz.yaml` · `agent-pool-hermes.yaml` (agents-runtime).  
+단위 테스트: `services/ext-authz/tests/test_ext_authz.py` (`TestHermesAgentInvoke`).
 
 ## NetworkPolicy
 
@@ -63,7 +77,7 @@ docker build \
 
 CI: `.github/workflows/hermes-oci.yml` — install policy grep + docker build + max-size gate (1200 MiB).
 
-agents-runtime monorepo 통합 시 동일 Dockerfile을 `runtimes/hermes-base/`에서 재사용 (`packages/common` in-tree).
+**agents-runtime monorepo** (`build-images.yml` + `hermes-base-oci.yml`): 동일 gate, GHCR push는 release/`workflow_dispatch` 시 `build-images` matrix.
 
 ## Commands
 

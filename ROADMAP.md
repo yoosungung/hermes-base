@@ -40,17 +40,25 @@
 - [x] migration `0010_hermes_general.sql`
 - [x] k8s `agent-pool-hermes.yaml` 예시
 - [x] SPA Hermes agent 등록 UI
-- [ ] ext-authz pool routing
-- [ ] build-images CI
+- [x] ext-authz pool routing
+- [x] build-images CI
 - [x] `PATCH /hermes-general/{id}` + SPA 편집
 - [x] 멀티 pod E2E (`test_multipod_wire.py`)
 
 ## P3 — hardening
 
-- [ ] SSE streaming
-- [ ] UserVfs per-user memory (optional)
-- [ ] Opik trace
-- [ ] push 충돌 감지·감사 로그
+- [x] SSE streaming
+- [ ] UserVfs per-user memory (optional — P3 후속)
+- [x] Opik trace
+- [x] push 충돌 감지·감사 로그
+
+### P3 구현 메모
+
+| 항목 | 설계 |
+|------|------|
+| SSE | `run_conversation(stream_callback=…)` → `data: {"text":…}\n\n` + `[DONE]` (`chatStream.ts` 호환). `None` delta 필터(tool call 중 premature close 방지) |
+| Opik | `configure_opik` lifespan + `opik_trace_context` invoke/stream 경계 |
+| push 충돌 | `PullManifest`에 pull 시점 `vfs_modified_at` 저장 → push 전 재조회 불일치 시 409 + structured audit log (`vfs_push_conflict`) |
 
 ## P4 — (선택) Gateway
 

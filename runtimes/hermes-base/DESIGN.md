@@ -27,9 +27,18 @@ agents-runtime **Hermes Profile General** tier용 pool. Profile 정본은 **Post
 7. `await vfs_sync.seed_from_config(agent_name, merged_cfg)` — fingerprint 불일치 시
 8. `profile_runtime_scope(scratch)` 
 9. `instance = await get_or_build_hermes_agent(...)`
-10. `run_conversation(...)` (thread pool)
-11. `await vfs_sync.push(agent_name, scratch, manifest)`
+10. `run_conversation(...)` (thread pool) — `stream: true` 시 `stream_callback` + SSE (`hermes_stream.py`)
+11. `await vfs_sync.push(agent_name, scratch, manifest)` — VFS 충돌 시 409
 12. `profile_lock.release()`
+
+**P3 hardening**
+
+| 항목 | 구현 |
+|------|------|
+| SSE | `POST /invoke` + `stream: true` → `text/event-stream`, `data: {"text":…}`, `[DONE]`. Chat SPA `chatStream.ts` 호환 |
+| Opik | `OPIK_URL` → `configure_opik` lifespan; invoke/stream에 `opik_trace_context` |
+| push 충돌 | `PullFileState.vfs_modified_at` vs push 시점 VFS 재조회 → `ProfileVfsConflictError` (409 JSON / SSE error) |
+| 감사 | pool structured log `vfs_push_conflict`, `invoke_vfs_conflict` (backend `audit_log`는 별도) |
 
 ### ProfileVfsSync
 
@@ -47,7 +56,7 @@ class ProfileVfsSync:
 ```
 
 - `pull`: `store.glob(kind, name, "/profile/**")` → scratch에 mirror
-- `push`: manifest 대비 mtime/size 변경 파일만 `store.write`
+- `push`: manifest `PullFileState`(scratch mtime + vfs `modified_at`) 대비 dirty 파일만 write; VFS 버전 불일치 → `ProfileVfsConflictError`
 - `seed_from_config`: backend 등록 API와 동일 로직 (pool에서 config가 더 새일 때)
 
 ### ProfileMaterializer

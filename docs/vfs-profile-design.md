@@ -49,6 +49,7 @@ POST /invoke
 - **Scratch**: `HERMES_WORK_DIR` (기본 `/var/cache/hermes-work`), pod `emptyDir` — **RWX PVC 없음**.
 - **세션·메시지**: Hermes `SessionDB` → Postgres (`HERMES_SESSION_DSN`). VFS와 별도.
 - **충돌**: 동일 agent에 동시 invoke는 Redis lock으로 직렬화. lock 실패 시 429 + retry-after.
+- **VFS write-back 충돌 (P3)**: pull 시점 `vfs_modified_at`과 push 전 재조회 값이 다르면 `409` — 다른 pod/관리자가 중간에 VFS를 갱신한 경우.
 
 ---
 

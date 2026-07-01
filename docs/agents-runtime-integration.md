@@ -59,8 +59,25 @@ CHECK (deploy_mode IN ('bundle', 'image', 'general', 'hermes_general'));
 
 ## 5. ext-authz / frontend / deploy
 
-- `POOL_HERMES_URL`, `agent-pool-hermes.yaml` (**PVC 제거**)
-- `build-images.yml`: `hermes-base`
+### ext-authz pool routing (완료)
+
+- `runtime_pool=agent:hermes` → `Settings.agent_pool_url("hermes")` → `POOL_HERMES_URL`
+- `deploy/k8s/base/ext-authz.yaml`: `POOL_HERMES_URL` env
+- `deploy/k8s/base/agent-pool-hermes.yaml` + kustomization (**PVC 제거**)
+- `checksum=NULL` (general tier와 동일) — warm-registry miss 시 pool ClusterIP Service로 라우팅
+- 테스트: `services/ext-authz/tests/test_ext_authz.py::TestHermesAgentInvoke`
+
+### build-images CI (완료)
+
+agents-runtime [`.github/workflows/build-images.yml`](../../works/agents-runtime/.github/workflows/build-images.yml):
+
+- matrix에 `hermes-base` 포함 → `ghcr.io/<owner>/agent-runtime/hermes-base:<git-sha>`
+- `hermes-gates` job: install policy + OCI unit tests
+- hermes-base 빌드: `GIT_SHA` / `HERMES_REVISION` build-arg + **1200 MiB** size gate
+
+PR/push 검증: agents-runtime [`.github/workflows/hermes-base-oci.yml`](../../works/agents-runtime/.github/workflows/hermes-base-oci.yml) (hermes 단독 `hermes-oci.yml`과 동일 gate).
+
+스크립트: `scripts/hermes/check-hermes-install-policy.sh`, `check-hermes-image-size.sh`
 - **SPA (P2)**: `/agents/hermes` · `/agents/new/hermes` · `/agents/hermes/:id` — `HermesAgentNewPage`, `HermesAgentDetailPage`, `useCreateHermesAgent`
 
 ## 6. 검증 시나리오

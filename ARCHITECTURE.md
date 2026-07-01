@@ -94,7 +94,8 @@ agents-runtime/ (통합)
 ### 데이터 흐름
 
 ```
-[Chat UI] → /v1/agents/invoke → hermes-base
+[Chat UI] → Envoy /v1/agents/invoke → ext-authz (agent:hermes → agent-pool-hermes)
+    → hermes-base /invoke
     → Redis lock
     → VFS pull (Postgres) → emptyDir scratch
     → AIAgent.run_conversation
