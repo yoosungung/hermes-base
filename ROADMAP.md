@@ -39,10 +39,11 @@
 - [x] `POST /api/source-meta/hermes-general` + **VFS seed**
 - [x] migration `0010_hermes_general.sql`
 - [x] k8s `agent-pool-hermes.yaml` 예시
-- [ ] SPA Hermes agent 등록 UI
+- [x] SPA Hermes agent 등록 UI
 - [ ] ext-authz pool routing
 - [ ] build-images CI
-- [ ] 멀티 pod E2E
+- [x] `PATCH /hermes-general/{id}` + SPA 편집
+- [x] 멀티 pod E2E (`test_multipod_wire.py`)
 
 ## P3 — hardening
 

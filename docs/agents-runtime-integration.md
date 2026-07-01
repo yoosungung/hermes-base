@@ -40,7 +40,10 @@ for skill in body.skills:
 
 ### `PATCH /api/source-meta/hermes-general/{id}`
 
-- `soul` / `skills` 변경 → VFS upsert + `source_meta.config` 갱신
+- `soul` / `skills` / `mcp_servers` / `model` / `visibility` / `config` — partial update (`exclude_none`)
+- config rebuild 시 MCP catalog 재조회 → `_build_hermes_config`
+- VFS upsert: `ProfileVfsSync.seed_from_config` (+ skills marker prune)
+- SPA: `HermesAgentDetailPage` 편집 + `usePatchHermesAgent`
 
 ### migration
 
@@ -56,8 +59,9 @@ CHECK (deploy_mode IN ('bundle', 'image', 'general', 'hermes_general'));
 
 ## 5. ext-authz / frontend / deploy
 
-- `POOL_HERMES_URL`, `HermesAgentNewPage`, `agent-pool-hermes.yaml` (**PVC 제거**)
+- `POOL_HERMES_URL`, `agent-pool-hermes.yaml` (**PVC 제거**)
 - `build-images.yml`: `hermes-base`
+- **SPA (P2)**: `/agents/hermes` · `/agents/new/hermes` · `/agents/hermes/:id` — `HermesAgentNewPage`, `HermesAgentDetailPage`, `useCreateHermesAgent`
 
 ## 6. 검증 시나리오
 
@@ -66,6 +70,8 @@ CHECK (deploy_mode IN ('bundle', 'image', 'general', 'hermes_general'));
 3. Pod B invoke → VFS `memories/MEMORY.md` 반영·세션 연속
 4. `skill_manage`로 skill 추가 → push → Pod B에서 `skills/` visible
 5. 동시 invoke 동일 agent → 429 또는 lock 대기
+
+**멀티 pod E2E (wire-dev, LLM 없이)**: `test_multipod_wire.py` — Pod A/B 별도 scratch로 VFS memory·session DSN 연속성 검증
 
 ## 7. wire-dev E2E (로컬 Mac → dev k8s)
 
